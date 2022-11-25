@@ -11,6 +11,8 @@ import datetime as dt
 import numpy as np
 from babel.numbers import format_currency
 from flask_jsonpify import jsonpify
+from flask import request
+
 import os
 
 app = Flask(__name__)
@@ -33,12 +35,14 @@ def hello_world():
     total_pnl = 'TotalPnL'
     equity_curve = 'EquityCurve'
     coin_list = ['BTCUSDT', 'MATICUSDT', 'LRCUSDT', 'GALAUSDT']
-    current_coin = 0
+
+    coin = request.args.get('coin')
+    
     try:
         account_resp = um_futures_client.account(recvWindow=6000)
         unrealized_bal = account_resp['totalUnrealizedProfit']
         bal_resp = um_futures_client.balance(recvWindow=6000)
-        response = um_futures_client.get_account_trades(symbol=coin_list[current_coin], recvWindow=6000, limit= 1000)
+        response = um_futures_client.get_account_trades(symbol=coin, recvWindow=6000, limit= 1000)
         df = pd.DataFrame.from_records(response)
         # df.to_csv('/Users/andy/Nextcloud/Trading/Scripts/Binance/TradeImport/out.csv')
         # drop columns not needed
