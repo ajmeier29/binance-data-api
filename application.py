@@ -1,3 +1,4 @@
+from flask import Flask
 from pickle import BINBYTES
 import pandas as pd
 import logging
@@ -9,12 +10,13 @@ import json
 import datetime as dt
 import numpy as np
 from babel.numbers import format_currency
+from flask_jsonpify import jsonpify
 import os
-#------------------------------------------------------------------------
-# Binance API Section
-#------------------------------------------------------------------------
 
-def GetBinanceData():
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
     key = os.environ['BINANCEKEY']
     secret = os.environ['BINANCESECRET']
 
@@ -83,8 +85,9 @@ def GetBinanceData():
         binance_df[realizedPnl] = binance_df[realizedPnl].astype(float)
         binance_df[total_pnl] = binance_df[total_pnl].astype(float)
         logging.info(response)
-
-        return binance_df
+        df_list = binance_df.values.tolist()
+        JSONP_data = jsonpify(df_list)
+        return JSONP_data
     except ClientError as error:
         logging.error(
             "Found error. status: {}, error code: {}, error message: {}".format(
@@ -93,5 +96,4 @@ def GetBinanceData():
         )
 
 # Program Start
-GetBinanceData()
-
+# GetBinanceData()

@@ -1,0 +1,5 @@
+flask
+pandas
+binance-futures-connector
+babel
+flask-jsonpify
