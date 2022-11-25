@@ -17,6 +17,10 @@ import os
 
 app = Flask(__name__)
 
+# Usage:
+#   /?coin=<binance coin ticker>
+#   /?coin=BTCUSDT
+#   /?coin=MATICUSDT
 @app.route('/')
 def hello_world():
     key = os.environ['BINANCEKEY']
