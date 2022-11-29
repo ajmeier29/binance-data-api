@@ -78,9 +78,11 @@ def hello_world():
         binance_df[realizedPnl] = binance_df[realizedPnl].astype(float)
         binance_df[total_pnl] = binance_df[total_pnl].astype(float)
         logging.info(response)
-        df_list = binance_df.values.tolist()
-        JSONP_data = jsonpify(df_list)
-        return JSONP_data
+        json = binance_df.to_json(orient='records')[1:-1].replace('},{', '} {')
+        # df_list = binance_df.values.tolist()
+        # JSONP_data = jsonpify(df_list)
+        # return JSONP_data
+        return json
     except ClientError as error:
         logging.error(
             "Found error. status: {}, error code: {}, error message: {}".format(
