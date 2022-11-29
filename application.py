@@ -48,7 +48,9 @@ def hello_world():
         bal_resp = um_futures_client.balance(recvWindow=6000)
         response = um_futures_client.get_account_trades(symbol=coin, recvWindow=6000, limit= 1000)
         df = pd.DataFrame.from_records(response)
-        # df.to_csv('/Users/andy/Nextcloud/Trading/Scripts/Binance/TradeImport/out.csv')
+        # Close return nothing if there is nothing to return.        
+        if df.empty:
+            return []
         # drop columns not needed
         df = df.drop(['marginAsset', 'commissionAsset', 'quoteQty', 'positionSide', 'buyer', 'maker'], axis=1)
         # arrange in order of google sheet
@@ -59,33 +61,16 @@ def hello_world():
         df[qty] = df[qty].astype(float)
         df[price] = df[price].astype(float)
         # create new dataframe with avgeraged rows from orderId
-        # final_df = df.groupby([orderId, symbol, side, 'time'], as_index=False)[realizedPnl].sum()
         binance_df = df.groupby([orderId], as_index=False).agg({price:'mean',qty:'sum',commission:'sum',realizedPnl:'sum'})
-
-        # final_df = df.groupby(['time',orderId, symbol, side], as_index=False).agg({price:'mean',qty:'sum',commission:'sum',realizedPnl:'sum'})
         binance_df = df.groupby([orderId, symbol, side], as_index=False).agg({price:'mean',qty:'sum',commission:'sum',realizedPnl:'sum'})
-        # final_df = df.groupby([orderId, symbol, side, 'time'], as_index=False)["commission", "realizedPnl"].apply(lambda x : x.sum())
-        # convert int timestamp to date time.
-        # final_df['time'] = final_df['time'].apply(lambda x : pd.to_datetime(x, utc=True, unit='ms'))
-        # final_df['time'] = final_df['time'].astype(str)
-        # drop rows that have no realized Pnl
-        #final_df = final_df.drop(final_df[final_df.realizedPnl == 0].index)
-
         # update column order_type
         binance_df[orderType] = ""
         binance_df.loc[binance_df[realizedPnl] == 0, orderType] = 'Open'
         binance_df.loc[binance_df[realizedPnl] != 0, orderType] = 'Close'
-
         # make commision col a negative number
         binance_df[commission] = binance_df[commission].apply(lambda x: x * -1)
         # create total Pnl
         binance_df[total_pnl] = binance_df[commission] + binance_df[realizedPnl]
-        # format cols to USD currency
-        # binance_df[total_pnl] = binance_df[total_pnl].apply(lambda x: format_currency(x, currency="USD", locale="en_US"))
-        # binance_df[commission] = binance_df[commission].apply(lambda x: format_currency(x, currency="USD", locale="en_US"))
-        # binance_df[realizedPnl] = binance_df[realizedPnl].apply(lambda x: format_currency(x, currency="USD", locale="en_US"))
-        # binance_df[price] = binance_df[price].apply(lambda x: format_currency(x, currency="USD", locale="en_US"))
-
         # rearange cols
         binance_df = binance_df[[orderId, orderType, symbol, side, price, qty, commission, realizedPnl, total_pnl]]
         binance_df[price] = binance_df[price].astype(float)
@@ -102,6 +87,3 @@ def hello_world():
                 error.status_code, error.error_code, error.error_message
             )
         )
-
-# Program Start
-# GetBinanceData()
