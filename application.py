@@ -11,7 +11,7 @@ import datetime as dt
 import numpy as np
 from babel.numbers import format_currency
 from flask_jsonpify import jsonpify
-from flask import request
+from flask import request, Response
 
 import os
 
@@ -78,11 +78,12 @@ def hello_world():
         binance_df[realizedPnl] = binance_df[realizedPnl].astype(float)
         binance_df[total_pnl] = binance_df[total_pnl].astype(float)
         logging.info(response)
-        json = binance_df.to_json(orient='records')[1:-1].replace('},{', '} {')
+        json_data = binance_df.to_json(orient='records')[1:-1]
         # df_list = binance_df.values.tolist()
         # JSONP_data = jsonpify(df_list)
         # return JSONP_data
-        return json
+        # return "[" + json + "]"
+        return Response("\"Trades\":[" + json_data + "]", mimetype='application/json')
     except ClientError as error:
         logging.error(
             "Found error. status: {}, error code: {}, error message: {}".format(
